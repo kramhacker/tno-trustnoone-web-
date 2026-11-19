@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny all reads and writes by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidSiteStatsCreate(data) {
+      return data.keys().hasAll(['totalVisits', 'updatedAt'])
+        && data.keys().hasOnly(['totalVisits', 'updatedAt'])
+        && data.totalVisits is int
+        && data.totalVisits == 1
+        && data.updatedAt == request.time;
+    }
+
+    function isValidSiteStatsUpdate(next, prev) {
+      return next.keys().hasAll(['totalVisits', 'updatedAt'])
+        && next.keys().hasOnly(['totalVisits', 'updatedAt'])
+        && next.diff(prev).affectedKeys().hasOnly(['totalVisits', 'updatedAt'])
+        && next.totalVisits is int
+        && prev.totalVisits is int
+        && next.totalVisits == prev.totalVisits + 1
+        && next.updatedAt == request.time;
+    }
+
+    // Public aggregate visit counter document (/siteStats/overview)
+    // Stores zero PII; only allows initializing at 1 or atomic +1 increments.
+    match /siteStats/{statId} {
+      allow get: if isValidId(statId) && statId == 'overview';
+      allow list: if false;
+      allow create: if isValidId(statId) && statId == 'overview' && isValidSiteStatsCreate(incoming());
+      allow update: if isValidId(statId) && statId == 'overview' && isValidSiteStatsUpdate(incoming(), existing());
+      allow delete: if false;
+    }
+  }
+}

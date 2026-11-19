@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "SiteVisitStats": {
+      "title": "SiteVisitStats",
+      "description": "Tracks total public website visits across sessions and devices without storing any personal user data.",
+      "type": "object",
+      "properties": {
+        "totalVisits": {
+          "type": "integer",
+          "description": "Cumulative count of website visits (must initialize at 1 and increment strictly by 1)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the latest recorded visit."
+        }
+      },
+      "required": ["totalVisits", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/siteStats/{statId}": {
+      "schema": { "$ref": "#/entities/SiteVisitStats" },
+      "description": "Public aggregate visit counter document (/siteStats/overview)."
+    }
+  }
+}

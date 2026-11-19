@@ -1,0 +1,6 @@
+{
+  "name": "TNO · Trust No One — Bigo Family",
+  "description": "Official Bigo Family directory showcasing the Family Owner, leadership roles, Bigo Hosts, orientation guide, and family rules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
